@@ -1,0 +1,86 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#ff4b2b"><title>Super Achados — V2</title><style>:root{--o:#ff4b2b;--o2:#ef3340;--bg:#f4f5f8;--card:#fff;--t:#202124;--m:#6f747c;--g:#19a463;--r:#d64545;--b:#246bfe;--bd:#e3e5e9}*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--t)}header{background:linear-gradient(135deg,var(--o),var(--o2));color:#fff;padding:22px 18px 18px;position:sticky;top:0;z-index:5;box-shadow:0 5px 18px #0002}.in,main{max-width:1050px;margin:auto}.brand{display:flex;gap:14px;align-items:center}.logo{width:58px;height:58px;border-radius:18px;background:#fff;color:var(--o);display:grid;place-items:center;font-weight:900;font-size:22px}.brand h1{margin:0;font-size:25px}.brand p{margin:3px 0 0;opacity:.9}.tabs{display:flex;gap:8px;overflow:auto;margin-top:18px}.tab{border:1px solid #ffffff55;background:#ffffff1f;color:#fff;border-radius:999px;padding:9px 14px;white-space:nowrap;font-weight:700}.tab.active{background:#fff;color:var(--o)}main{padding:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat,.card{background:var(--card);border-radius:22px;box-shadow:0 8px 28px #00000012}.stat{padding:18px}.stat b{font-size:27px}.stat span{display:block;color:var(--m);margin-top:5px}.section{margin-top:16px}.card{padding:20px}.card h2{margin:0 0 15px}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field label{display:block;font-weight:700;margin-bottom:7px}.field input,.field select{width:100%;padding:13px 14px;border:1px solid var(--bd);border-radius:14px;font:inherit}.full{grid-column:1/-1}.notice{padding:13px 15px;border-radius:14px;background:#fff7e8;color:#7b5b16;margin-bottom:14px;font-size:14px;line-height:1.45}button{border:0;border-radius:14px;padding:12px 16px;font-weight:800;font-size:15px;cursor:pointer}.primary{background:var(--o);color:#fff}.secondary{background:#f0f2f5}.blue{background:var(--b);color:#fff}.green{background:var(--g);color:#fff}.danger{background:#fff0f0;color:var(--r)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.offer{border:1px solid var(--bd);border-radius:18px;padding:16px;margin-top:12px}.top{display:flex;justify-content:space-between;gap:12px}.offer h3{margin:0 0 5px}.pill{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:800;background:#fff3ed;color:#d94a24;margin:0 5px 5px 0}.score{font-size:22px;font-weight:900}.good{color:var(--g)}.mid{color:#b77900}.low{color:var(--r)}.muted,.small{color:var(--m);font-size:14px}.price{font-size:23px;font-weight:900;margin-top:8px}.empty{text-align:center;color:var(--m);padding:30px 10px}.connector{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--bd);border-radius:16px;padding:15px;margin-top:10px}.dot{width:11px;height:11px;border-radius:50%;background:#b9bec6;display:inline-block;margin-right:7px}.hidden{display:none}.codebox{background:#17191d;color:#e9edf2;border-radius:14px;padding:14px;overflow:auto;font:12px/1.5 ui-monospace,monospace}.check{display:block;margin:14px 0;color:var(--m)}.footer{text-align:center;color:var(--m);font-size:12px;padding:28px 0 45px}@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.top{flex-direction:column}.score{align-self:flex-start}}</style></head><body><header><div class="in"><div class="brand"><div class="logo">SA</div><div><h1>Super Achados</h1><p>Central de ofertas • V4</p></div></div><div class="tabs"><button class="tab active" onclick="tab('painel',this)">Painel</button><button class="tab" onclick="tab('fila',this)">Ofertas</button><button class="tab" onclick="tab('conexoes',this)">Conexões</button><button class="tab" onclick="tab('config',this)">Configurações</button></div></div></header><main><section id="painel">
+<section id="filtroInteligente" class="section card">
+<h2>🧠 Filtro inteligente</h2>
+<div class="notice">Defina o mínimo de score que você quer receber. Quando a API estiver liberada, o motor poderá usar esta mesma regra para filtrar centenas de produtos antes de colocar qualquer coisa na sua fila.</div>
+<div class="formgrid">
+<div class="field"><label>Score mínimo</label><input id="minScore" type="number" min="0" max="100" value="85"></div>
+<div class="field"><label>Máximo de ofertas na fila</label><input id="maxQueue" type="number" min="1" max="100" value="10"></div>
+</div>
+<label class="check"><input id="onlyExtra" type="checkbox"> Priorizar comissão extra</label>
+<label class="check"><input id="onlyRated" type="checkbox"> Exigir avaliação mínima de 4,5</label>
+<div class="actions">
+<button class="primary" onclick="aplicarFiltro()">🧠 Aplicar filtro inteligente</button>
+<button class="secondary" onclick="gerarTop10()">🏆 Gerar Top oportunidades</button>
+</div>
+<div id="filterResult" class="small" style="margin-top:10px"></div>
+</section>
+
+<section id="preparacao" class="section card">
+<h2>🤖 Motor de oportunidades</h2>
+<div class="notice"><b>API em preparação:</b> enquanto a Shopee não libera sua API, você pode testar o fluxo com ofertas de demonstração. Depois conectaremos a fonte oficial.</div>
+<div class="actions"><button class="primary" onclick="simularBusca()">🔎 Simular busca automática</button></div>
+<div id="simResult" class="small" style="margin-top:10px"></div>
+</section>
+<div class="grid"><div class="stat"><b id="total">0</b><span>Ofertas cadastradas</span></div><div class="stat"><b id="ap">0</b><span>Aprovadas</span></div><div class="stat"><b id="q">0</b><span>Na fila</span></div><div class="stat"><b id="avg">0</b><span>Score médio</span></div></div><div class="section card"><h2>⚡ Adicionar e analisar oferta</h2><div class="notice">Cole um link de afiliado da Shopee ou Mercado Livre e informe os dados do produto. A V2 calcula um score. As integrações reais por API oficial entram na próxima etapa; não coloque senhas, cookies ou tokens no site público.</div><div class="formgrid"><div class="field full"><label>Produto</label><input id="name" placeholder="Ex.: Fone Bluetooth X55"></div><div class="field"><label>Plataforma</label><select id="plat"><option>Shopee</option><option>Mercado Livre</option></select></div><div class="field"><label>Preço (R$)</label><input id="price" type="number" step=".01" placeholder="59,99"></div><div class="field"><label>Comissão (%)</label><input id="comm" type="number" step=".1" placeholder="12,5"></div><div class="field"><label>Vendas</label><input id="sales" type="number" placeholder="100000"></div><div class="field"><label>Avaliação</label><input id="rating" type="number" step=".1" min="0" max="5" placeholder="4,8"></div><div class="field"><label>Desconto (%)</label><input id="disc" type="number" step=".1" placeholder="40"></div><div class="field"><label>Comissão extra?</label><select id="extra"><option value="0">Não</option><option value="1">Sim</option></select></div><div class="field full"><label>Link de afiliado</label><input id="link" type="url" placeholder="https://..."></div></div><div class="actions"><button class="primary" onclick="add()">➕ Adicionar e analisar</button><button class="secondary" onclick="demo()">🧪 Preencher exemplo</button></div></div><div class="section card"><h2>🏆 Ofertas analisadas</h2><div id="list"></div></div></section><section id="fila" class="hidden"><div class="card"><h2>📋 Fila de publicação</h2><div class="notice">Revise os achados antes de publicar. A publicação automática será conectada somente depois das integrações oficiais.</div><div id="queue"></div></div></section><section id="conexoes" class="hidden"><div class="card"><h2>🔌 Conexões</h2><div class="notice"><b>Estrutura preparada:</b> para automação 24/7, vamos conectar as APIs oficiais da Shopee e do Mercado Livre em um backend seguro. Nunca exponha credenciais no GitHub Pages.</div><div class="connector"><div><b>🛍️ Shopee Afiliados</b><div class="small">API oficial — pronta para configuração</div></div><span class="small">Não conectado</span></div><div class="connector"><div><b>🛒 Mercado Livre</b><div class="small">API oficial — pronta para configuração</div></div><span class="small">Não conectado</span></div><div class="connector"><div><b>📲 Distribuição</b><div class="small">Instagram / Telegram / canais permitidos</div></div><span class="small">Próxima etapa</span></div></div><div class="card section"><h2>🧠 Fluxo da automação</h2><div class="codebox">APIs OFICIAIS → BUSCA → FILTRO → SCORE → IA → FILA → APROVAÇÃO → PUBLICAÇÃO → MÉTRICAS</div></div></section><section id="config" class="hidden"><div class="card"><h2>⚙️ Configurações</h2><label class="check"><input id="auto" type="checkbox"> Aprovar automaticamente score ≥ 85</label><label class="check"><input id="extraOnly" type="checkbox"> Priorizar comissão extra</label><label class="check"><input id="salesOnly" type="checkbox"> Priorizar muitas vendas</label><div class="actions"><button class="danger" onclick="clearAll()">Limpar ofertas deste navegador</button></div><p class="small">Os dados da V2 ficam salvos localmente neste navegador. A automação 24/7 ficará em um backend seguro.</p></div></section><div class="footer">Super Achados V4 • Central de ofertas</div></main><script>const K='SA_V2';let data=JSON.parse(localStorage.getItem(K)||'[]'),cfg=JSON.parse(localStorage.getItem(K+'C')||'{}');const $=id=>document.getElementById(id);$('auto').checked=!!cfg.auto;$('extraOnly').checked=!!cfg.extra;$('salesOnly').checked=!!cfg.sales;function sc(o){return Math.min(100,Math.round(Math.min(25,(+o.disc||0)*.7)+Math.min(25,(+o.comm||0)*1.7)+(+o.extra?10:0)+Math.min(20,Math.log10(Math.max(1,+o.sales||1))*4)+Math.min(15,(+o.rating||0)*3)+((+o.price||0)<=100?5:2)))}function save(){localStorage.setItem(K,JSON.stringify(data));render()}function add(){let n=$('name').value.trim();if(!n)return alert('Informe o produto.');let o={id:Date.now(),name:n,plat:$('plat').value,price:+$('price').value||0,comm:+$('comm').value||0,sales:+$('sales').value||0,rating:+$('rating').value||0,disc:+$('disc').value||0,extra:+$('extra').value,link:$('link').value.trim(),ok:false};o.score=sc(o);if(cfg.auto&&o.score>=85)o.ok=true;data.unshift(o);save();['name','price','comm','sales','rating','disc','link'].forEach(x=>$(x).value='');$('extra').value='0';alert('Oferta adicionada! Score: '+o.score+'/100')}function demo(){$('name').value='Fone Bluetooth Sem Fio com Cancelamento';$('plat').value='Shopee';$('price').value='59.99';$('comm').value='12.5';$('sales').value='100000';$('rating').value='4.8';$('disc').value='40';$('extra').value='1';$('link').value='https://s.shopee.com.br/gQKWKpSLT'}function card(o){let c=o.score>=85?'good':o.score>=65?'mid':'low';return '<div class="offer"><div class="top"><div><h3>'+esc(o.name)+'</h3><span class="pill">'+esc(o.plat)+'</span>'+(o.extra?'<span class="pill">COMISSÃO EXTRA</span>':'')+(o.ok?'<span class="pill" style="background:#eaf8f0;color:#168454">APROVADA</span>':'')+'<div class="muted">⭐ '+(o.rating||0)+' • '+fmt(o.sales)+' vendas • '+(o.disc||0)+'% desconto • '+(o.comm||0)+'% comissão</div><div class="price">R$ '+money(o.price)+'</div></div><div class="score '+c+'">'+o.score+'/100</div></div><div class="actions">'+(o.ok?'':'<button class="green" onclick="approve('+o.id+')">✅ Aprovar</button>')+'<button class="blue" onclick="post('+o.id+')">✍️ Gerar post</button>'+(o.link?'<button class="secondary" onclick="window.open('+JSON.stringify(o.link)+',\'_blank\')">🔗 Abrir link</button>':'')+'<button class="danger" onclick="del('+o.id+')">Excluir</button></div></div>'}
+function simularBusca(){
+ const exemplos=[
+  {name:'Fone Bluetooth Pro',plat:'Shopee',price:59.99,comm:12.5,sales:100000,rating:4.8,disc:40,extra:1,link:'https://s.shopee.com.br/exemplo',ok:false},
+  {name:'Smartwatch Esportivo',plat:'Shopee',price:89.90,comm:10,sales:35000,rating:4.7,disc:32,extra:1,link:'https://s.shopee.com.br/exemplo2',ok:false},
+  {name:'Kit Organizador para Casa',plat:'Mercado Livre',price:39.90,comm:8,sales:12000,rating:4.9,disc:25,extra:0,link:'https://mercadolivre.com.br/exemplo',ok:false}
+ ];
+ let n=0;
+ exemplos.forEach(x=>{if(!data.some(o=>o.name===x.name)){x.id=Date.now()+n++;x.score=sc(x);data.unshift(x)}});
+ save();
+ document.getElementById('simResult').textContent='Busca simulada concluída. As oportunidades foram adicionadas e pontuadas.';
+}
+
+
+function getFilter(){
+  return {
+    min: Math.max(0, Math.min(100, Number(document.getElementById('minScore')?.value || 85))),
+    max: Math.max(1, Math.min(100, Number(document.getElementById('maxQueue')?.value || 10))),
+    extra: !!document.getElementById('onlyExtra')?.checked,
+    rated: !!document.getElementById('onlyRated')?.checked
+  };
+}
+function filteredOffers(){
+  const f=getFilter();
+  return data.map(o=>{o.score=sc(o);return o;})
+    .filter(o=>o.score>=f.min)
+    .filter(o=>!f.extra || Number(o.extra)===1)
+    .filter(o=>!f.rated || Number(o.rating||0)>=4.5)
+    .sort((a,b)=>b.score-a.score);
+}
+function aplicarFiltro(){
+  const f=getFilter(), arr=filteredOffers();
+  const top=arr.slice(0,f.max);
+  document.getElementById('filterResult').textContent =
+    `✅ Filtro aplicado: ${arr.length} oportunidade(s) passaram. ${top.length} foram selecionadas para o Top.`;
+  document.getElementById('top10').innerHTML=top.length ? top.map((o,i)=>rankingCard(o,i)).join('') :
+    '<div class="empty">Nenhuma oferta atingiu os critérios atuais. Diminua o score mínimo ou desmarque um filtro.</div>';
+}
+function gerarTop10(){
+  document.getElementById('minScore').value=85;
+  document.getElementById('maxQueue').value=10;
+  aplicarFiltro();
+}
+function rankingCard(o,i){
+  const cls=o.score>=85?'good':o.score>=70?'mid':'low';
+  return `<div class="offer">
+    <div class="offer-top">
+      <div><h3>#${i+1} ${esc(o.name)}</h3>
+      <span class="pill">${esc(o.plat||'Plataforma')}</span>
+      ${Number(o.extra)?'<span class="pill">COMISSÃO EXTRA</span>':''}
+      <div class="muted">⭐ ${o.rating||0} • ${fmt(o.sales)} vendas • ${o.disc||0}% desconto • ${o.comm||0}% comissão</div>
+      <div class="price">R$ ${money(o.price)}</div></div>
+      <div class="score ${cls}">${o.score}/100</div>
+    </div>
+    <div class="actions">
+      <button class="green" onclick="approve(${o.id})">✅ Aprovar</button>
+      <button class="blue" onclick="generate(${o.id})">✍️ Gerar post</button>
+      ${o.link?`<button class="secondary" onclick="window.open(${JSON.stringify(o.link)},'_blank')">🔗 Abrir link</button>`:''}
+    </div>
+  </div>`;
+}
+
+function render(){data.forEach(o=>o.score=sc(o));$('total').textContent=data.length;$('ap').textContent=data.filter(o=>o.ok).length;$('q').textContent=data.filter(o=>!o.ok).length;$('avg').textContent=data.length?Math.round(data.reduce((a,o)=>a+o.score,0)/data.length):0;$('list').innerHTML=data.length?data.map(card).join(''):'<div class="empty">Nenhuma oferta. Use “Preencher exemplo” para testar.</div>';let p=data.filter(o=>!o.ok);$('queue').innerHTML=p.length?p.map(card).join(''):'<div class="empty">🎉 Fila vazia.</div>'}function approve(id){let o=data.find(x=>x.id===id);if(o){o.ok=true;save()}}function del(id){data=data.filter(x=>x.id!==id);save()}function post(id){let o=data.find(x=>x.id===id);let t='🔥 ACHADINHO DO DIA\n\n'+o.name+'\n\n💰 Por apenas R$ '+money(o.price)+'\n🏷️ '+(o.disc||0)+'% de desconto\n⭐ '+(o.rating||0)+' de avaliação\n🛒 '+fmt(o.sales)+' vendas\n\n👉 Confira: '+(o.link||'[INSIRA O LINK]')+'\n\n⚡ Super Achados — encontrando ofertas para você!';navigator.clipboard?.writeText(t).then(()=>alert('Post gerado e copiado!')).catch(()=>prompt('Copie o texto:',t))}function tab(id,b){document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');scrollTo(0,0)}function clearAll(){if(confirm('Apagar todas as ofertas?')){data=[];save()}}function fmt(v){return Number(v||0).toLocaleString('pt-BR')}function money(v){return Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}$('auto').onchange=()=>{cfg.auto=$('auto').checked;localStorage.setItem(K+'C',JSON.stringify(cfg))};$('extraOnly').onchange=()=>{cfg.extra=$('extraOnly').checked;localStorage.setItem(K+'C',JSON.stringify(cfg))};$('salesOnly').onchange=()=>{cfg.sales=$('salesOnly').checked;localStorage.setItem(K+'C',JSON.stringify(cfg))};render(); aplicarFiltro();</script></body></html>

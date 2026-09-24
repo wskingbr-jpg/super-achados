@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff4b2b">
+<title>Super Achados — Central</title>
+<style>
+:root{
+  --orange:#ff4b2b; --orange2:#ff7043; --bg:#f6f7fb; --card:#fff;
+  --text:#202124; --muted:#70757a; --green:#159447; --red:#d93025;
+  --shadow:0 8px 28px rgba(0,0,0,.08); --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,var(--orange),#ff2d55);color:#fff;padding:24px 18px 28px;position:sticky;top:0;z-index:10}
+.header-inner{max-width:1050px;margin:auto}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:48px;height:48px;border-radius:14px;background:#fff;color:var(--orange);display:grid;place-items:center;font-weight:900;font-size:19px;box-shadow:0 5px 18px rgba(0,0,0,.14)}
+h1{font-size:23px;margin:0}.subtitle{margin:5px 0 0;opacity:.9;font-size:13px}
+main{max-width:1050px;margin:20px auto;padding:0 14px 50px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:25px}.stat span{color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1.25fr;gap:18px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+.card h2{font-size:18px;margin:0 0 14px}
+label{display:block;font-size:12px;font-weight:700;color:#555;margin:11px 0 5px}
+input,select,textarea{width:100%;border:1px solid #ddd;border-radius:11px;padding:12px;font-size:14px;outline:none;background:#fff}
+input:focus,select:focus,textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,75,43,.1)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{border:0;border-radius:11px;padding:12px 15px;font-weight:800;cursor:pointer;font-size:14px}
+.primary{background:var(--orange);color:#fff}.secondary{background:#f0f1f3;color:#333}.success{background:#e9f8ef;color:var(--green)}.danger{background:#fff0ef;color:var(--red)}
+button:hover{filter:brightness(.97)}
+.offer{border:1px solid #eee;border-radius:15px;padding:14px;margin-bottom:12px}
+.offer-top{display:flex;justify-content:space-between;gap:10px}
+.offer-title{font-weight:800;font-size:15px}.price{font-size:20px;font-weight:900;color:var(--orange);margin-top:5px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0}
+.badge{font-size:11px;background:#f2f3f5;padding:5px 8px;border-radius:999px;color:#555}
+.score{font-weight:900;font-size:14px;padding:6px 9px;border-radius:10px;background:#fff2ed;color:var(--orange)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.actions button{font-size:12px;padding:9px 10px}
+.empty{text-align:center;color:var(--muted);padding:25px}
+textarea{min-height:155px;resize:vertical}
+.notice{font-size:12px;color:var(--muted);line-height:1.5;background:#f7f7f8;border-radius:12px;padding:11px;margin-top:10px}
+@media(max-width:780px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:430px){.row{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat b{font-size:21px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo">SA</div>
+      <div><h1>Super Achados</h1><div class="subtitle">Central de ofertas • V1</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="stats">
+    <div class="stat"><b id="total">0</b><span>Ofertas cadastradas</span></div>
+    <div class="stat"><b id="approved">0</b><span>Aprovadas</span></div>
+    <div class="stat"><b id="queue">0</b><span>Na fila</span></div>
+    <div class="stat"><b id="avg">0</b><span>Score médio</span></div>
+  </section>
+
+  <div class="grid">
+    <div>
+      <section class="card">
+        <h2>➕ Nova oferta</h2>
+        <form id="offerForm">
+          <label>Produto</label>
+          <input id="name" required placeholder="Ex.: Fone Bluetooth X55">
+          <div class="row">
+            <div><label>Preço (R$)</label><input id="price" type="number" step="0.01" min="0" required placeholder="59,99"></div>
+            <div><label>Comissão (%)</label><input id="commission" type="number" step="0.1" min="0" required placeholder="12,5"></div>
+          </div>
+          <div class="row">
+            <div><label>Vendas</label><input id="sales" type="number" min="0" placeholder="100000"></div>
+            <div><label>Avaliação</label><input id="rating" type="number" step="0.1" min="0" max="5" placeholder="4,8"></div>
+          </div>
+          <div class="row">
+            <div><label>Desconto (%)</label><input id="discount" type="number" step="0.1" min="0" max="100" placeholder="35"></div>
+            <div><label>Comissão extra?</label><select id="extra"><option value="0">Não</option><option value="1">Sim</option></select></div>
+          </div>
+          <label>Categoria</label>
+          <select id="category">
+            <option>Eletrônicos</option><option>Casa</option><option>Moda</option><option>Beleza</option>
+            <option>Bebês</option><option>Motos e Automotivo</option><option>Games</option><option>Informática</option><option>Outros</option>
+          </select>
+          <label>Link de afiliado</label>
+          <input id="link" type="url" required placeholder="https://s.shopee.com.br/...">
+          <div class="row" style="margin-top:14px">
+            <button class="primary" type="submit">Adicionar oferta</button>
+            <button class="secondary" type="button" onclick="clearAll()">Limpar tudo</button>
+          </div>
+        </form>
+        <div class="notice">V1 local: os dados ficam salvos neste navegador. Ainda não há conexão automática com Shopee/Mercado Livre nem publicação automática. Isso entra nas próximas etapas com integrações oficiais.</div>
+      </section>
+    </div>
+
+    <div>
+      <section class="card">
+        <h2>🔥 Fila de ofertas</h2>
+        <div id="offers"></div>
+      </section>
+
+      <section class="card">
+        <h2>✍️ Gerador de postagem</h2>
+        <textarea id="postText" placeholder="Selecione uma oferta e clique em “Gerar post”."></textarea>
+        <div class="actions">
+          <button class="secondary" onclick="copyPost()">📋 Copiar texto</button>
+          <button class="secondary" onclick="sharePost()">📲 Compartilhar</button>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+const KEY="superAchadosOffersV1";
+let offers=JSON.parse(localStorage.getItem(KEY)||"[]");
+
+function money(v){return Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
+function calcScore(o){
+  let s=0;
+  s += Math.min(Number(o.discount||0),50)/50*20;
+  s += Math.min(Number(o.commission||0),15)/15*20;
+  s += Number(o.extra)?15:0;
+  s += Math.min(Math.log10(Math.max(Number(o.sales||0),1))/5,1)*20;
+  s += Math.min(Number(o.rating||0)/5,1)*15;
+  s += (Number(o.price||0)<=100?10:Number(o.price||0)<=200?6:2);
+  return Math.round(Math.min(s,100));
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(offers));render();}
+function render(){
+  document.getElementById("total").textContent=offers.length;
+  document.getElementById("approved").textContent=offers.filter(x=>x.status==="aprovada").length;
+  document.getElementById("queue").textContent=offers.filter(x=>x.status==="fila").length;
+  let avg=offers.length?Math.round(offers.reduce((a,x)=>a+calcScore(x),0)/offers.length):0;
+  document.getElementById("avg").textContent=avg;
+  const box=document.getElementById("offers");
+  if(!offers.length){box.innerHTML='<div class="empty">Nenhuma oferta ainda.<br>Cadastre a primeira acima.</div>';return;}
+  box.innerHTML=offers.map((o,i)=>{
+    const score=calcScore(o);
+    const status=o.status==="aprovada"?"✅ Aprovada":o.status==="descartada"?"❌ Descartada":"🟡 Na fila";
+    return `<div class="offer">
+      <div class="offer-top"><div><div class="offer-title">${esc(o.name)}</div><div class="price">${money(o.price)}</div></div><div class="score">${score}/100</div></div>
+      <div class="meta">
+        <span class="badge">💰 ${o.commission}%</span>
+        <span class="badge">⭐ ${o.rating||"—"}</span>
+        <span class="badge">📦 ${Number(o.sales||0).toLocaleString("pt-BR")} vendas</span>
+        <span class="badge">🏷️ ${esc(o.category)}</span>
+        ${Number(o.extra)?'<span class="badge">🔥 Extra</span>':""}
+        <span class="badge">${status}</span>
+      </div>
+      <div class="actions">
+        <button class="success" onclick="approve(${i})">Aprovar</button>
+        <button class="secondary" onclick="generatePost(${i})">✍️ Gerar post</button>
+        <button class="secondary" onclick="openLink(${i})">🔗 Abrir</button>
+        <button class="danger" onclick="discard(${i})">Descartar</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+document.getElementById("offerForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const o={
+    name:name.value.trim(),price:price.value,commission:commission.value,sales:sales.value||0,
+    rating:rating.value||0,discount:discount.value||0,extra:extra.value,category:category.value,
+    link:link.value.trim(),status:"fila",created:Date.now()
+  };
+  offers.unshift(o);save();e.target.reset();
+  document.getElementById("postText").value="";
+});
+function approve(i){offers[i].status="aprovada";save();}
+function discard(i){offers[i].status="descartada";save();}
+function openLink(i){window.open(offers[i].link,"_blank","noopener");}
+function generatePost(i){
+  const o=offers[i];
+  const text=`🔥 ACHADINHO DO DIA
+
+🛍️ ${o.name}
+
+💰 ${money(o.price)}
+${Number(o.discount)>0?`🏷️ Desconto: ${o.discount}%\n`:""}⭐ Avaliação: ${o.rating||"Confira na loja"}
+📦 ${Number(o.sales||0).toLocaleString("pt-BR")} vendas
+${Number(o.extra)?"🔥 Comissão extra disponível\n":""}
+🚨 O preço pode mudar a qualquer momento!
+
+🛒 PEGAR OFERTA:
+${o.link}
+
+#superachados #ofertas #achadinhos #promocao`;
+  document.getElementById("postText").value=text;
+}
+async function copyPost(){
+  const t=document.getElementById("postText").value;if(!t)return alert("Gere uma postagem primeiro.");
+  try{await navigator.clipboard.writeText(t);alert("Post copiado!");}catch{alert("Não foi possível copiar automaticamente. Selecione o texto e copie.");}
+}
+async function sharePost(){
+  const t=document.getElementById("postText").value;if(!t)return alert("Gere uma postagem primeiro.");
+  if(navigator.share){try{await navigator.share({title:"Super Achados",text:t});}catch{}}
+  else copyPost();
+}
+function clearAll(){
+  if(confirm("Apagar todas as ofertas deste navegador?")){offers=[];save();document.getElementById("postText").value="";}
+}
+render();
+</script>
+</body>
+</html>

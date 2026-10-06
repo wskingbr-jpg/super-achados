@@ -255,11 +255,13 @@ async function drawArt(id){
     imageLoaded=true;
   };
 
-  if(o.imageUrl){
-    const proxy='https://super-achados-backend.vercel.app/api/image?url='+encodeURIComponent(o.imageUrl);
+  const imageUrl = o.imageUrl || o.imageUrl1 || o.image_url || o.image || '';
+
+  if(imageUrl){
+    const proxy='https://super-achados-backend.vercel.app/api/image?url='+encodeURIComponent(imageUrl);
 
     try{
-      console.log('Super Achados: imagem original:',o.imageUrl);
+      console.log('Super Achados: imagem original:',imageUrl);
       console.log('Super Achados: proxy:',proxy);
 
       const response=await fetch(proxy,{method:'GET',cache:'no-store'});
@@ -315,7 +317,7 @@ async function drawArt(id){
           im.crossOrigin='anonymous';
           im.onload=()=>resolve(im);
           im.onerror=()=>reject(new Error('Imagem original indisponível'));
-          im.src=o.imageUrl;
+          im.src=imageUrl;
         });
         drawImageBox(img);
       }catch(e){
@@ -381,7 +383,7 @@ async function buscarShopeeAPI(){
   const incoming=(j.products||[]).map(p=>{
    const rawComm=Number(p.commissionRate||0);
    const comm=rawComm<=1?rawComm*100:rawComm;
-   return {id:'shopee-'+String(p.itemId),itemId:String(p.itemId),name:p.productName||'Produto Shopee',plat:'Shopee',price:Number(p.priceMin||p.priceMax||0),comm,commissionValue:Number(p.commission||0),sales:Number(p.sales||0),rating:Number(p.ratingStar||0),disc:Number(p.priceDiscountRate||0),extra:0,link:p.offerLink||p.productLink||'',imageUrl:p.imageUrl||'',shopName:p.shopName||'',api:true,ok:false,discarded:false};
+   return {id:'shopee-'+String(p.itemId),itemId:String(p.itemId),name:p.productName||'Produto Shopee',plat:'Shopee',price:Number(p.priceMin||p.priceMax||0),comm,commissionValue:Number(p.commission||0),sales:Number(p.sales||0),rating:Number(p.ratingStar||0),disc:Number(p.priceDiscountRate||0),extra:0,link:p.offerLink||p.productLink||'',imageUrl:p.imageUrl||p.imageUrl1||p.image_url||'',imageUrl1:p.imageUrl1||p.imageUrl||'',shopName:p.shopName||'',api:true,ok:false,discarded:false};
   });
   const existing=new Set(data.map(o=>String(o.itemId||'')));
   let added=0;

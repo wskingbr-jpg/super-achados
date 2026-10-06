@@ -1,5 +1,6 @@
 const ALLOWED_ORIGIN = "https://ws-kingbr-jpg.github.io";
 
+// Servidores de imagens usados pela Shopee
 const ALLOWED_HOSTS = new Set([
   "cf.shopee.com.br",
   "cf.shopee.co.th",
@@ -7,17 +8,34 @@ const ALLOWED_HOSTS = new Set([
   "cf.shopee.com.my",
   "cf.shopee.ph",
   "cf.shopee.sg",
-  "cf.shopee.tw"
+  "cf.shopee.tw",
+  "susercontent.com",
+  "down-br.img.susercontent.com",
+  "down-id.img.susercontent.com",
+  "down-vn.img.susercontent.com",
+  "down-th.img.susercontent.com",
+  "down-my.img.susercontent.com",
+  "down-ph.img.susercontent.com"
 ]);
 
 export default async function handler(req, res) {
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=86400");
 
-  if (req.method === "OPTIONS") return res.status(204).end();
+  // Cache
+  res.setHeader(
+    "Cache-Control",
+    "public, max-age=86400, s-maxage=86400"
+  );
 
+  // OPTIONS
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  // Somente GET
   if (req.method !== "GET") {
     return res.status(405).json({
       ok: false,
@@ -26,9 +44,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const raw = typeof req.query?.url === "string"
-      ? req.query.url
-      : "";
+    const raw =
+      typeof req.query?.url === "string"
+        ? req.query.url
+        : "";
 
     if (!raw) {
       return res.status(400).json({
@@ -37,53 +56,84 @@ export default async function handler(req, res) {
       });
     }
 
-    const target = new URL(raw);
+    let target;
 
+    try {
+      target = new URL(raw);
+    } catch {
+      return res.status(400).json({
+        ok: false,
+        error: "URL da imagem inválida."
+      });
+    }
+
+    // Segurança
     if (
       target.protocol !== "https:" ||
       !ALLOWED_HOSTS.has(target.hostname)
     ) {
       return res.status(403).json({
         ok: false,
-        error: "Domínio de imagem não autorizado."
+        error: "Domínio de imagem não autorizado.",
+        host: target.hostname
       });
     }
 
+    // Busca a imagem na Shopee
     const upstream = await fetch(target.toString(), {
+      method: "GET",
       headers: {
-        "User-Agent": "Mozilla/5.0 Super-Achados/1.0",
-        "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131 Safari/537.36",
+
+        "Accept":
+          "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+
+        "Referer":
+          "https://shopee.com.br/"
       }
     });
 
     if (!upstream.ok) {
       return res.status(502).json({
         ok: false,
-        error: "A Shopee não disponibilizou a imagem agora."
+        error: "A Shopee não disponibilizou a imagem agora.",
+        status: upstream.status
       });
     }
 
-    const type = upstream.headers.get("content-type") || "image/jpeg";
+    const contentType =
+      (upstream.headers.get("content-type") || "image/jpeg")
+        .split(";")[0]
+        .trim();
 
-    if (!type.startsWith("image/")) {
+    if (!contentType.startsWith("image/")) {
       return res.status(502).json({
         ok: false,
-        error: "Resposta inválida para imagem."
+        error: "A resposta recebida não é uma imagem.",
+        contentType
       });
     }
 
-    const buffer = Buffer.from(await upstream.arrayBuffer());
+    // Converte para Base64.
+    // Isso evita problemas de CORS no Canvas.
+    const buffer = Buffer.from(
+      await upstream.arrayBuffer()
+    );
 
     const dataUrl =
-      `data:${type};base64,${buffer.toString("base64")}`;
+      `data:${contentType};base64,` +
+      buffer.toString("base64");
 
     return res.status(200).json({
       ok: true,
-      contentType: type,
-      dataUrl
+      dataUrl,
+      contentType
     });
 
   } catch (error) {
+    console.error("Erro no proxy de imagem:", error);
+
     return res.status(500).json({
       ok: false,
       error: "Erro ao carregar imagem.",

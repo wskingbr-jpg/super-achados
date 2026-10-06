@@ -196,7 +196,170 @@ function openContent(id){let o=data.find(x=>String(x.id)===String(id));if(!o)ret
 function setCaption(id,style){let o=data.find(x=>String(x.id)===String(id));if(o)$('captionOut').textContent=caption(o,style)}
 function copyCaption(){let t=$('captionOut')?.textContent||'';navigator.clipboard?.writeText(t).then(()=>alert('Legenda copiada!')).catch(()=>prompt('Copie a legenda:',t))}
 function openArt(id){let o=data.find(x=>String(x.id)===String(id));if(!o)return;showModal('🖼️ Arte do Super Achados','<div class="artwrap"><div class="preview"><canvas id="artCanvas" width="1080" height="1920"></canvas></div><div><p class="small">Arte 9:16 pronta para Stories/Reels com foto real do produto, preço, desconto e identidade do Super Achados.</p><div class="actions"><button class="primary" onclick="drawArt('+JSON.stringify(o.id)+')">🔄 Atualizar</button><button class="blue" onclick="downloadArt()">⬇️ Baixar PNG</button></div></div></div>');setTimeout(()=>drawArt(o.id),30)}
-async function drawArt(id){let o=data.find(x=>String(x.id)===String(id)),c=$('artCanvas');if(!o||!c)return;let x=c.getContext('2d'),w=c.width,h=c.height;let g=x.createLinearGradient(0,0,w,h);g.addColorStop(0,'#17191d');g.addColorStop(.55,'#3a1010');g.addColorStop(1,'#ff4b2b');x.fillStyle=g;x.fillRect(0,0,w,h);x.textAlign='center';x.fillStyle='#ffb000';x.beginPath();x.arc(w/2,150,92,0,Math.PI*2);x.fill();x.fillStyle='#17191d';x.font='900 68px Arial';x.fillText('%',w/2,175);x.fillStyle='#fff';x.font='900 72px Impact, Arial Black, sans-serif';x.fillText('SUPER',w/2,315);x.fillStyle='#ffb000';x.font='900 88px Impact, Arial Black, sans-serif';x.fillText('ACHADOS',w/2,400);let imageLoaded=false;const drawImageBox=(img)=>{let boxX=90,boxY=465,boxW=900,boxH=610;let scale=Math.min(boxW/img.naturalWidth,boxH/img.naturalHeight);let iw=img.naturalWidth*scale,ih=img.naturalHeight*scale;let ix=boxX+(boxW-iw)/2,iy=boxY+(boxH-ih)/2;x.fillStyle='#fff';x.beginPath();x.roundRect(boxX,boxY,boxW,boxH,38);x.fill();x.drawImage(img,ix,iy,iw,ih);imageLoaded=true};if(o.imageUrl){const proxy='https://super-achados-backend.vercel.app/api/image?url='+encodeURIComponent(o.imageUrl);try{const img=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('proxy image load failed'));im.src=proxy});drawImageBox(img)}catch(e){console.warn('Proxy de imagem falhou:',e)}if(!imageLoaded){try{const img=await new Promise((resolve,reject)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('original image load failed'));im.src=o.imageUrl});drawImageBox(img)}catch(e){console.warn('Imagem original indisponível:',e)}}}if(!imageLoaded){x.fillStyle='rgba(255,255,255,.12)';x.beginPath();x.roundRect(90,465,900,610,38);x.fill();x.fillStyle='#fff';x.font='800 44px Arial';x.fillText('FOTO DO PRODUTO',w/2,770);x.font='700 28px Arial';x.fillText('Imagem indisponível para esta oferta',w/2,825)}x.fillStyle='#fff';x.font='800 44px Arial';wrapText(x,o.name,w/2,1160,900,58);x.fillStyle='#ffb000';x.font='900 104px Arial';x.fillText('R$ '+money(o.price),w/2,1400);x.fillStyle='#fff';x.font='800 48px Arial';x.fillText((o.disc||0)+'% DE DESCONTO',w/2,1495);x.font='700 38px Arial';x.fillText('⭐ '+(o.rating||0)+'  •  '+fmt(o.sales)+' vendas',w/2,1575);x.font='800 38px Arial';x.fillText('CONFIRA A OFERTA',w/2,1710);x.fillStyle='#ffb000';x.font='700 30px Arial';x.fillText('Super Achados • seu radar de ofertas',w/2,1810)}
+async function drawArt(id){
+  const o=data.find(x=>String(x.id)===String(id));
+  const c=$('artCanvas');
+  if(!o||!c)return;
+
+  const x=c.getContext('2d');
+  const w=c.width;
+  const h=c.height;
+
+  const g=x.createLinearGradient(0,0,w,h);
+  g.addColorStop(0,'#17191d');
+  g.addColorStop(.55,'#3a1010');
+  g.addColorStop(1,'#ff4b2b');
+  x.fillStyle=g;
+  x.fillRect(0,0,w,h);
+
+  x.textAlign='center';
+  x.fillStyle='#ffb000';
+  x.beginPath();
+  x.arc(w/2,150,92,0,Math.PI*2);
+  x.fill();
+
+  x.fillStyle='#17191d';
+  x.font='900 68px Arial';
+  x.fillText('%',w/2,175);
+
+  x.fillStyle='#fff';
+  x.font='900 72px Impact, Arial Black, sans-serif';
+  x.fillText('SUPER',w/2,315);
+
+  x.fillStyle='#ffb000';
+  x.font='900 88px Impact, Arial Black, sans-serif';
+  x.fillText('ACHADOS',w/2,400);
+
+  const boxX=90,boxY=465,boxW=900,boxH=610;
+  let imageLoaded=false;
+
+  const drawImageBox=(img)=>{
+    const iw0=img.naturalWidth||img.width||1;
+    const ih0=img.naturalHeight||img.height||1;
+    const scale=Math.min(boxW/iw0,boxH/ih0);
+    const iw=iw0*scale;
+    const ih=ih0*scale;
+    const ix=boxX+(boxW-iw)/2;
+    const iy=boxY+(boxH-ih)/2;
+
+    x.save();
+    x.fillStyle='#fff';
+    x.beginPath();
+    x.roundRect(boxX,boxY,boxW,boxH,38);
+    x.fill();
+    x.beginPath();
+    x.roundRect(boxX,boxY,boxW,boxH,38);
+    x.clip();
+    x.drawImage(img,ix,iy,iw,ih);
+    x.restore();
+    imageLoaded=true;
+  };
+
+  if(o.imageUrl){
+    const proxy='https://super-achados-backend.vercel.app/api/image?url='+encodeURIComponent(o.imageUrl);
+
+    try{
+      console.log('Super Achados: imagem original:',o.imageUrl);
+      console.log('Super Achados: proxy:',proxy);
+
+      const response=await fetch(proxy,{method:'GET',cache:'no-store'});
+
+      if(!response.ok){
+        throw new Error('Proxy HTTP '+response.status);
+      }
+
+      const contentType=(response.headers.get('content-type')||'').toLowerCase();
+
+      if(contentType.includes('application/json')){
+        const json=await response.json();
+        if(!json.ok||!json.dataUrl){
+          throw new Error(json.error||'Proxy não retornou dataUrl');
+        }
+
+        const img=await new Promise((resolve,reject)=>{
+          const im=new Image();
+          im.onload=()=>resolve(im);
+          im.onerror=()=>reject(new Error('Falha ao abrir dataUrl da imagem'));
+          im.src=json.dataUrl;
+        });
+
+        drawImageBox(img);
+      }else{
+        const blob=await response.blob();
+        if(!blob||!blob.size){
+          throw new Error('Imagem recebida vazia');
+        }
+
+        const objectUrl=URL.createObjectURL(blob);
+
+        try{
+          const img=await new Promise((resolve,reject)=>{
+            const im=new Image();
+            im.onload=()=>resolve(im);
+            im.onerror=()=>reject(new Error('Falha ao abrir Blob da imagem'));
+            im.src=objectUrl;
+          });
+          drawImageBox(img);
+        }finally{
+          URL.revokeObjectURL(objectUrl);
+        }
+      }
+    }catch(e){
+      console.warn('Super Achados: proxy de imagem falhou:',e);
+    }
+
+    if(!imageLoaded){
+      try{
+        const img=await new Promise((resolve,reject)=>{
+          const im=new Image();
+          im.crossOrigin='anonymous';
+          im.onload=()=>resolve(im);
+          im.onerror=()=>reject(new Error('Imagem original indisponível'));
+          im.src=o.imageUrl;
+        });
+        drawImageBox(img);
+      }catch(e){
+        console.warn('Super Achados: imagem original falhou:',e);
+      }
+    }
+  }
+
+  if(!imageLoaded){
+    x.fillStyle='rgba(255,255,255,.12)';
+    x.beginPath();
+    x.roundRect(boxX,boxY,boxW,boxH,38);
+    x.fill();
+    x.fillStyle='#fff';
+    x.font='800 44px Arial';
+    x.fillText('FOTO DO PRODUTO',w/2,770);
+    x.font='700 28px Arial';
+    x.fillText('Imagem indisponível para esta oferta',w/2,825);
+  }
+
+  x.fillStyle='#fff';
+  x.font='800 44px Arial';
+  wrapText(x,o.name,w/2,1160,900,58);
+
+  x.fillStyle='#ffb000';
+  x.font='900 104px Arial';
+  x.fillText('R$ '+money(o.price),w/2,1400);
+
+  x.fillStyle='#fff';
+  x.font='800 48px Arial';
+  x.fillText((o.disc||0)+'% DE DESCONTO',w/2,1495);
+
+  x.font='700 38px Arial';
+  x.fillText('⭐ '+(o.rating||0)+'  •  '+fmt(o.sales)+' vendas',w/2,1575);
+
+  x.font='800 38px Arial';
+  x.fillText('CONFIRA A OFERTA',w/2,1710);
+
+  x.fillStyle='#ffb000';
+  x.font='700 30px Arial';
+  x.fillText('Super Achados • seu radar de ofertas',w/2,1810);
+
+  console.log(imageLoaded?'✅ Super Achados: imagem carregada na arte.':'⚠️ Super Achados: imagem não carregada.');
+}
 function wrapText(ctx,text,cx,y,maxWidth,lineHeight){let words=String(text).split(' '),line='';for(let n=0;n<words.length;n++){let test=line+words[n]+' ';if(ctx.measureText(test).width>maxWidth&&n>0){ctx.fillText(line,cx,y);line=words[n]+' ';y+=lineHeight}else line=test}ctx.fillText(line,cx,y)}
 function downloadArt(){let c=$('artCanvas');if(!c)return;let a=document.createElement('a');a.download='super-achados-story.png';a.href=c.toDataURL('image/png');a.click()}
 function showModal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modal').classList.add('open')}

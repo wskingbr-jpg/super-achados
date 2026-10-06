@@ -1,6 +1,5 @@
 const ALLOWED_ORIGIN = "https://ws-kingbr-jpg.github.io";
 
-// Servidores de imagens usados pela Shopee
 const ALLOWED_HOSTS = new Set([
   "cf.shopee.com.br",
   "cf.shopee.co.th",
@@ -19,23 +18,31 @@ const ALLOWED_HOSTS = new Set([
 ]);
 
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  // Cache
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    ALLOWED_ORIGIN
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, OPTIONS"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
+
   res.setHeader(
     "Cache-Control",
     "public, max-age=86400, s-maxage=86400"
   );
 
-  // OPTIONS
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
-  // Somente GET
   if (req.method !== "GET") {
     return res.status(405).json({
       ok: false,
@@ -44,6 +51,7 @@ export default async function handler(req, res) {
   }
 
   try {
+
     const raw =
       typeof req.query?.url === "string"
         ? req.query.url
@@ -67,19 +75,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // Segurança
     if (
       target.protocol !== "https:" ||
       !ALLOWED_HOSTS.has(target.hostname)
     ) {
       return res.status(403).json({
         ok: false,
-        error: "Domínio de imagem não autorizado.",
+        error: "Domínio da imagem não autorizado.",
         host: target.hostname
       });
     }
 
-    // Busca a imagem na Shopee
     const upstream = await fetch(target.toString(), {
       method: "GET",
       headers: {
@@ -97,13 +103,16 @@ export default async function handler(req, res) {
     if (!upstream.ok) {
       return res.status(502).json({
         ok: false,
-        error: "A Shopee não disponibilizou a imagem agora.",
+        error: "A Shopee não disponibilizou a imagem.",
         status: upstream.status
       });
     }
 
     const contentType =
-      (upstream.headers.get("content-type") || "image/jpeg")
+      (
+        upstream.headers.get("content-type") ||
+        "image/jpeg"
+      )
         .split(";")[0]
         .trim();
 
@@ -115,24 +124,31 @@ export default async function handler(req, res) {
       });
     }
 
-    // Converte para Base64.
-    // Isso evita problemas de CORS no Canvas.
     const buffer = Buffer.from(
       await upstream.arrayBuffer()
     );
 
-    const dataUrl =
-      `data:${contentType};base64,` +
-      buffer.toString("base64");
-
-    return res.status(200).json({
-      ok: true,
-      dataUrl,
+    // IMPORTANTE:
+    // Retorna a imagem diretamente,
+    // porque o V15.3 espera uma imagem neste endpoint.
+    res.setHeader(
+      "Content-Type",
       contentType
-    });
+    );
+
+    res.setHeader(
+      "Content-Length",
+      buffer.length.toString()
+    );
+
+    return res.status(200).send(buffer);
 
   } catch (error) {
-    console.error("Erro no proxy de imagem:", error);
+
+    console.error(
+      "Erro no proxy de imagem:",
+      error
+    );
 
     return res.status(500).json({
       ok: false,

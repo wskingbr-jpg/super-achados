@@ -3,9 +3,6 @@ import crypto from "node:crypto";
 const SHOPEE_URL =
   "https://open-api.affiliate.shopee.com.br/graphql";
 
-const ALLOWED_ORIGIN =
-  "https://ws-kingbr-jpg.github.io";
-
 const QUERY = `
 query ProductOffers(
   $keyword: String,
@@ -52,33 +49,23 @@ query ProductOffers(
 }
 `;
 
-function applyCors(req, res) {
+function applyCors(res) {
+  /*
+   * CORS aberto para permitir que o GitHub Pages
+   * consulte o backend Vercel.
+   */
 
-  // Remove qualquer cabeçalho CORS
-  // que possa ter sido colocado anteriormente.
   try {
     res.removeHeader("Access-Control-Allow-Origin");
     res.removeHeader("Access-Control-Allow-Methods");
     res.removeHeader("Access-Control-Allow-Headers");
     res.removeHeader("Access-Control-Allow-Credentials");
-  } catch {}
+  } catch (e) {}
 
-  const origin = req.headers?.origin || "";
-
-  // Aceita somente nosso GitHub Pages.
-  if (origin === ALLOWED_ORIGIN) {
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      ALLOWED_ORIGIN
-    );
-  } else {
-    // Para acesso direto pelo navegador,
-    // mantém a origem autorizada.
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      ALLOWED_ORIGIN
-    );
-  }
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "*"
+  );
 
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -99,29 +86,62 @@ function applyCors(req, res) {
     "Vary",
     "Origin"
   );
+
+  res.setHeader(
+    "Content-Type",
+    "application/json; charset=utf-8"
+  );
 }
 
-function result(res, status, data) {
+function sendJson(res, status, data) {
+  applyCors(res);
+
   return res
     .status(status)
     .json(data);
 }
 
+function getNumber(value, fallback = 0) {
+  const n = Number(value);
+
+  return Number.isFinite(n)
+    ? n
+    : fallback;
+}
+
 export default async function handler(req, res) {
 
-  applyCors(req, res);
+  // ===============================
+  // CORS
+  // ===============================
 
-  // =========================
+  applyCors(res);
+
+  // ===============================
   // PREFLIGHT
-  // =========================
+  // ===============================
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
-  // =========================
+  // ===============================
+  // MÉTODO
+  // ===============================
+
+  if (
+    req.method !== "GET" &&
+    req.method !== "POST"
+  ) {
+    return sendJson(res, 405, {
+      ok: false,
+      error: "Método não permitido."
+    });
+  }
+
+  // ===============================
   // CREDENCIAIS
-  // =========================
+  // ===============================
 
   const appId =
     process.env.SHOPEE_APP_ID;
@@ -130,18 +150,22 @@ export default async function handler(req, res) {
     process.env.SHOPEE_SECRET;
 
   if (!appId || !secret) {
-    return result(res, 500, {
+    return sendJson(res, 500, {
       ok: false,
       error:
-        "SHOPEE_APP_ID ou SHOPEE_SECRET não configurado."
+        "Credenciais da Shopee não configuradas no Vercel.",
+      missing: {
+        SHOPEE_APP_ID: !appId,
+        SHOPEE_SECRET: !secret
+      }
     });
   }
 
   try {
 
-    // =========================
+    // ===============================
     // PARÂMETROS
-    // =========================
+    // ===============================
 
     let keyword = "";
     let limit = 10;
@@ -150,80 +174,78 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
 
-      keyword =
-        String(
-          req.query?.keyword || ""
-        ).trim();
+      keyword = String(
+        req.query?.keyword || ""
+      ).trim();
 
-      limit = Math.min(
-        Math.max(
-          Number(
-            req.query?.limit || 10
-          ),
-          1
-        ),
-        50
+      limit = getNumber(
+        req.query?.limit,
+        10
       );
 
-      page = Math.max(
-        Number(
-          req.query?.page || 1
-        ),
+      page = getNumber(
+        req.query?.page,
         1
       );
 
-      sortType =
-        Number(
-          req.query?.sortType || 5
-        );
-
-    } else if (req.method === "POST") {
-
-      const body =
-        typeof req.body === "string"
-          ? JSON.parse(
-              req.body || "{}"
-            )
-          : (req.body || {});
-
-      keyword =
-        String(
-          body.keyword || ""
-        ).trim();
-
-      limit = Math.min(
-        Math.max(
-          Number(
-            body.limit || 10
-          ),
-          1
-        ),
-        50
+      sortType = getNumber(
+        req.query?.sortType,
+        5
       );
 
-      page = Math.max(
-        Number(
-          body.page || 1
-        ),
-        1
-      );
-
-      sortType =
-        Number(
-          body.sortType || 5
-        );
     } else {
 
-      return result(res, 405, {
-        ok: false,
-        error:
-          "Método não permitido."
-      });
+      let body = req.body || {};
+
+      if (typeof body === "string") {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          body = {};
+        }
+      }
+
+      keyword = String(
+        body.keyword || ""
+      ).trim();
+
+      limit = getNumber(
+        body.limit,
+        10
+      );
+
+      page = getNumber(
+        body.page,
+        1
+      );
+
+      sortType = getNumber(
+        body.sortType,
+        5
+      );
     }
 
-    // =========================
-    // PAYLOAD
-    // =========================
+    // Limites de segurança
+    limit = Math.min(
+      Math.max(
+        Math.floor(limit),
+        1
+      ),
+      50
+    );
+
+    page = Math.max(
+      Math.floor(page),
+      1
+    );
+
+    sortType = Math.floor(
+      sortType
+    );
+
+    // ===============================
+    // VARIÁVEIS DA SHOPEE
+    // ===============================
 
     const variables = {
       keyword: keyword || null,
@@ -231,6 +253,10 @@ export default async function handler(req, res) {
       page,
       limit
     };
+
+    // ===============================
+    // PAYLOAD
+    // ===============================
 
     const payloadObject = {
       query: QUERY,
@@ -244,14 +270,18 @@ export default async function handler(req, res) {
         payloadObject
       );
 
-    // =========================
-    // ASSINATURA SHOPEE
-    // =========================
+    // ===============================
+    // TIMESTAMP
+    // ===============================
 
     const timestamp =
       Math.floor(
         Date.now() / 1000
       ).toString();
+
+    // ===============================
+    // ASSINATURA
+    // ===============================
 
     const signature =
       crypto
@@ -261,11 +291,11 @@ export default async function handler(req, res) {
         )
         .digest("hex");
 
-    // =========================
-    // CHAMADA SHOPEE
-    // =========================
+    // ===============================
+    // CHAMADA PARA A SHOPEE
+    // ===============================
 
-    const response =
+    const upstream =
       await fetch(
         SHOPEE_URL,
         {
@@ -283,134 +313,182 @@ export default async function handler(req, res) {
         }
       );
 
-    const data =
-      await response.json();
+    // ===============================
+    // RESPOSTA DA SHOPEE
+    // ===============================
 
-    // =========================
-    // ERRO SHOPEE
-    // =========================
+    let data;
 
-    if (
-      !response.ok ||
-      data?.errors
-    ) {
-
-      return result(res, 502, {
+    try {
+      data = await upstream.json();
+    } catch {
+      return sendJson(res, 502, {
         ok: false,
         error:
-          "Erro retornado pela API da Shopee.",
-        details:
-          data?.errors || data
+          "A Shopee retornou uma resposta inválida."
       });
     }
 
-    // =========================
-    // PRODUTOS
-    // =========================
+    // ===============================
+    // ERRO DA SHOPEE
+    // ===============================
+
+    if (!upstream.ok) {
+
+      return sendJson(res, 502, {
+        ok: false,
+        error:
+          "Erro HTTP retornado pela Shopee.",
+        status:
+          upstream.status,
+        details:
+          data
+      });
+    }
+
+    if (data?.errors) {
+
+      return sendJson(res, 502, {
+        ok: false,
+        error:
+          "A API da Shopee retornou um erro.",
+        details:
+          data.errors
+      });
+    }
+
+    // ===============================
+    // EXTRAÇÃO DOS PRODUTOS
+    // ===============================
+
+    const result =
+      data?.data?.productOfferV2;
 
     const nodes =
-      data?.data
-        ?.productOfferV2
-        ?.nodes || [];
+      result?.nodes || [];
 
     const pageInfo =
-      data?.data
-        ?.productOfferV2
-        ?.pageInfo || null;
+      result?.pageInfo || null;
+
+    // ===============================
+    // NORMALIZAÇÃO
+    // ===============================
 
     const products =
-      nodes.map((p) => ({
-        itemId:
-          String(
-            p.itemId || ""
-          ),
+      nodes.map((p) => {
 
-        productName:
-          p.productName || "",
+        return {
+          itemId:
+            String(
+              p.itemId || ""
+            ),
 
-        commissionRate:
-          Number(
-            p.commissionRate || 0
-          ),
+          productName:
+            p.productName || "",
 
-        commission:
-          Number(
-            p.commission || 0
-          ),
+          commissionRate:
+            getNumber(
+              p.commissionRate
+            ),
 
-        price:
-          Number(
-            p.price || 0
-          ),
+          commission:
+            getNumber(
+              p.commission
+            ),
 
-        priceMin:
-          Number(
-            p.priceMin || 0
-          ),
+          price:
+            getNumber(
+              p.price
+            ),
 
-        priceMax:
-          Number(
-            p.priceMax || 0
-          ),
+          priceMin:
+            getNumber(
+              p.priceMin
+            ),
 
-        sales:
-          Number(
-            p.sales || 0
-          ),
+          priceMax:
+            getNumber(
+              p.priceMax
+            ),
 
-        ratingStar:
-          Number(
-            p.ratingStar || 0
-          ),
+          sales:
+            getNumber(
+              p.sales
+            ),
 
-        priceDiscountRate:
-          Number(
-            p.priceDiscountRate || 0
-          ),
+          ratingStar:
+            getNumber(
+              p.ratingStar
+            ),
 
-        shopName:
-          p.shopName || "",
+          priceDiscountRate:
+            getNumber(
+              p.priceDiscountRate
+            ),
 
-        productLink:
-          p.productLink || "",
+          shopName:
+            p.shopName || "",
 
-        offerLink:
-          p.offerLink || "",
+          productLink:
+            p.productLink || "",
 
-        imageUrl:
-          p.imageUrl || "",
+          offerLink:
+            p.offerLink || "",
 
-        shopId:
-          p.shopId || "",
+          /*
+           * IMPORTANTE:
+           * A URL real da imagem da Shopee
+           * vai para o Super Achados.
+           */
+          imageUrl:
+            p.imageUrl || "",
 
-        shopType:
-          p.shopType || [],
+          shopId:
+            String(
+              p.shopId || ""
+            ),
 
-        sellerCommissionRate:
-          Number(
-            p.sellerCommissionRate || 0
-          ),
+          shopType:
+            Array.isArray(
+              p.shopType
+            )
+              ? p.shopType
+              : [],
 
-        shopeeCommissionRate:
-          Number(
-            p.shopeeCommissionRate || 0
-          ),
+          sellerCommissionRate:
+            getNumber(
+              p.sellerCommissionRate
+            ),
 
-        periodStartTime:
-          p.periodStartTime || 0,
+          shopeeCommissionRate:
+            getNumber(
+              p.shopeeCommissionRate
+            ),
 
-        periodEndTime:
-          p.periodEndTime || 0,
+          periodStartTime:
+            getNumber(
+              p.periodStartTime
+            ),
 
-        productCatIds:
-          p.productCatIds || []
-      }));
+          periodEndTime:
+            getNumber(
+              p.periodEndTime
+            ),
 
-    // =========================
-    // RESPOSTA
-    // =========================
+          productCatIds:
+            Array.isArray(
+              p.productCatIds
+            )
+              ? p.productCatIds
+              : []
+        };
+      });
 
-    return result(res, 200, {
+    // ===============================
+    // RESPOSTA FINAL
+    // ===============================
+
+    return sendJson(res, 200, {
 
       ok: true,
 
@@ -427,16 +505,16 @@ export default async function handler(req, res) {
   } catch (error) {
 
     console.error(
-      "Erro Super Achados Shopee:",
+      "SUPER ACHADOS SHOPEE ERROR:",
       error
     );
 
-    return result(res, 500, {
+    return sendJson(res, 500, {
 
       ok: false,
 
       error:
-        "Erro ao consultar a API da Shopee.",
+        "Erro interno ao consultar a API da Shopee.",
 
       details:
         error?.message ||

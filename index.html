@@ -188,9 +188,9 @@ function restore(id){let o=data.find(x=>String(x.id)===String(id));if(o){o.disca
 function openLink(link){if(link&&link.startsWith('http'))window.open(link,'_blank');else alert('Esta oferta ainda não tem um link válido.')}
 function caption(o,style){
  const price='R$ '+money(o.price), link=o.link||'[INSIRA O LINK]';
- if(style==='urgencia')return '🔥 ACHADINHO DO DIA\\n\\n'+o.name+'\\n\\n💥 Por apenas '+price+'\\n🏷️ '+(o.disc||0)+'% de desconto\\n⭐ '+(o.rating||0)+' de avaliação\\n\\n👉 Confira: '+link+'\\n\\n⚡ Pode mudar a qualquer momento. Confira o preço antes de comprar.\\n\\n#achadinhos #ofertas #superachados';
- if(style==='economia')return '💰 OLHA ESSA ECONOMIA!\\n\\n'+o.name+'\\n\\n💵 '+price+'\\n🏷️ '+(o.disc||0)+'% OFF\\n⭐ '+(o.rating||0)+'\\n🛒 '+fmt(o.sales)+' vendas\\n\\n👉 Ver oferta: '+link+'\\n\\n⚡ Super Achados';
- return '👀 EU ACHEI!\\n\\n'+o.name+'\\n\\nTá saindo por '+price+' 😮\\n⭐ '+(o.rating||0)+' • '+fmt(o.sales)+' vendas\\n🏷️ '+(o.disc||0)+'% de desconto\\n\\n👉 '+link+'\\n\\n🔥 Salva o Super Achados para não perder as próximas.';
+ if(style==='urgencia')return '🔥 ACHADINHO DO DIA\n\n'+o.name+'\n\n💥 Por apenas '+price+'\n🏷️ '+(o.disc||0)+'% de desconto\n⭐ '+(o.rating||0)+' de avaliação\n\n👉 Confira: '+link+'\n\n⚡ Pode mudar a qualquer momento. Confira o preço antes de comprar.\n\n#achadinhos #ofertas #superachados';
+ if(style==='economia')return '💰 OLHA ESSA ECONOMIA!\n\n'+o.name+'\n\n💵 '+price+'\n🏷️ '+(o.disc||0)+'% OFF\n⭐ '+(o.rating||0)+'\n🛒 '+fmt(o.sales)+' vendas\n\n👉 Ver oferta: '+link+'\n\n⚡ Super Achados';
+ return '👀 EU ACHEI!\n\n'+o.name+'\n\nTá saindo por '+price+' 😮\n⭐ '+(o.rating||0)+' • '+fmt(o.sales)+' vendas\n🏷️ '+(o.disc||0)+'% de desconto\n\n👉 '+link+'\n\n🔥 Salva o Super Achados para não perder as próximas.';
 }
 function openContent(id){let o=data.find(x=>String(x.id)===String(id));if(!o)return;showModal('✍️ Gerador de conteúdo','<div class="actions"><button class="primary" onclick="setCaption('+JSON.stringify(o.id)+',\'urgencia\')">🔥 Urgência</button><button class="gold" onclick="setCaption('+JSON.stringify(o.id)+',\'economia\')">💰 Economia</button><button class="secondary" onclick="setCaption('+JSON.stringify(o.id)+',\'casual\')">😎 Casual</button></div><div id="captionOut" class="captionbox" style="margin-top:12px">'+esc(caption(o,'urgencia'))+'</div><div class="actions"><button class="blue" onclick="copyCaption()">📋 Copiar legenda</button></div>')}
 function setCaption(id,style){let o=data.find(x=>String(x.id)===String(id));if(o)$('captionOut').textContent=caption(o,style)}
